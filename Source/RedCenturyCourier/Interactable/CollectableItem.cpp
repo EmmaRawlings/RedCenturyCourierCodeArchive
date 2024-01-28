@@ -22,7 +22,7 @@ ACollectableItem::ACollectableItem()
 	// Mesh->SetCanEverAffectNavigation(false);
 
 	CollectableSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
-	CollectableSphere->InitSphereRadius(50.f);
+	CollectableSphere->InitSphereRadius(25.f);
 	static FName CollisionProfileName(TEXT("OverlapAllDynamic"));
 	CollectableSphere->SetCollisionProfileName(CollisionProfileName);
 	// CollectionSphere->CanCharacterStepUpOn = ECB_No;
