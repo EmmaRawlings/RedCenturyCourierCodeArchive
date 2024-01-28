@@ -24,6 +24,14 @@ public:
 	FString ItemName;
 	// UPROPERTY(Category="Collectable Item", EditAnywhere, BlueprintReadWrite)
 	// bool bItemAvailable;
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Collectable Item")
+	// ReSharper disable once CppUEBlueprintCallableFunctionUnused
+	// ReSharper disable once CppUEBlueprintImplementableEventNotImplemented
+	void Collect(AActor* CollectingActor);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Collectable Item")
+	// ReSharper disable once CppUEBlueprintCallableFunctionUnused
+	// ReSharper disable once CppUEBlueprintImplementableEventNotImplemented
+	void Discard(AActor* DiscardingActor);
 
 protected:
 	virtual void BeginPlay() override;
