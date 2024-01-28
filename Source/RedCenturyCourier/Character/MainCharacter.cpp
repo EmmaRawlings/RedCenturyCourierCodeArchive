@@ -98,6 +98,18 @@ float AMainCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 }
 
+float AMainCharacter::GetActorTimeDilation() const
+{
+	return Super::GetActorTimeDilation()
+		* Cast<UMainCharacterMovement>(GetCharacterMovement())->GetRushTimeDilation();
+}
+
+float AMainCharacter::GetActorTimeDilation(const UWorld& ActorWorld) const
+{
+	return Super::GetActorTimeDilation(ActorWorld)
+		* Cast<UMainCharacterMovement>(GetCharacterMovement())->GetRushTimeDilation();
+}
+
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();

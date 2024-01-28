@@ -38,6 +38,8 @@ protected:
 	float RushTimeoutTimer;
 public:
 	virtual float GetMaxSpeed() const override;
+	virtual float GetRushTimeDilation();
+
 };
 
 // DOCSONLY: }

@@ -35,29 +35,36 @@ void UMainCharacterMovement::TickComponent(float DeltaTime, ELevelTick TickType,
 		const FVector InputXY = FVector::VectorPlaneProject(GetLastInputVector(), FVector::UpVector);
 		const FVector VelocityXY = FVector::VectorPlaneProject(Velocity, FVector::UpVector);
 		const FVector ControlXY = FVector::VectorPlaneProject(GetCharacterOwner()->GetControlRotation().RotateVector(FVector::ForwardVector), FVector::UpVector);
-		if ((!VelocityXY.IsNearlyZero(RushTimeoutSpeedTolerance)
+
+		const bool bRushBelowMax = Rush < MaxRush;
+		const bool bCanBuildRush =
+			(!VelocityXY.IsNearlyZero(RushTimeoutSpeedTolerance)
 			&& FUtils::AngleInDegrees(InputXY,  VelocityXY) < 60.f
 			&& FUtils::AngleInDegrees(InputXY,  ControlXY) < 60.f)
-			|| IsAnyNavModeActive())
+			|| IsAnyNavModeActive();
+		const bool bCantLoseRush = IsFalling();
+		const bool bRushAboveMax = Rush > MaxRush;
+		
+		if (bRushBelowMax && bCanBuildRush)
 		{
 			RushTimeoutTimer = 0.f;
-			Rush += PassiveRushGain * DeltaTime / GetCharacterOwner()->CustomTimeDilation;
+			Rush += PassiveRushGain * DeltaTime / GetCharacterOwner()->GetActorTimeDilation();
 			Rush = FMath::Clamp(Rush, 0.f, MaxRush);
 		}
-		else if (!IsFalling())
+		else if ((!bCanBuildRush && !bCantLoseRush) || bRushAboveMax)
 		{
-			RushTimeoutTimer += DeltaTime / GetCharacterOwner()->CustomTimeDilation;
+			RushTimeoutTimer += DeltaTime / GetCharacterOwner()->GetActorTimeDilation();
 			if (RushTimeoutTimer >= RushTimeout)
 			{
-				Rush -= PassiveRushLoss * DeltaTime / GetCharacterOwner()->CustomTimeDilation;
+				Rush -= PassiveRushLoss * DeltaTime / GetCharacterOwner()->GetActorTimeDilation();
 				Rush = FMath::Clamp(Rush, 0.f, MaxRush);
 				RushTimeoutTimer = RushTimeout;
 			}
 		}
 	}
 
-	// TODO modify GetActorTimeDilation instead?
-	GetCharacterOwner()->CustomTimeDilation = RushTimeMultiCurve->GetFloatValue(Rush);
+	// // TODO modify GetActorTimeDilation instead?
+	// GetCharacterOwner()->CustomTimeDilation = RushTimeMultiCurve->GetFloatValue(Rush);
 	// GetWorld()->GetWorldSettings()->SetTimeDilation(RushTimeMultiCurve->GetFloatValue(Rush));
 }
 
@@ -70,4 +77,9 @@ void UMainCharacterMovement::TickComponent(float DeltaTime, ELevelTick TickType,
 float UMainCharacterMovement::GetMaxSpeed() const
 {
 	return Super::GetMaxSpeed() * RushSpeedMultiCurve->GetFloatValue(Rush);
+}
+
+float UMainCharacterMovement::GetRushTimeDilation()
+{
+	return RushTimeMultiCurve->GetFloatValue(Rush);
 }

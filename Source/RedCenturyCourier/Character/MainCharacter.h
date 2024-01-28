@@ -46,6 +46,12 @@ public:
 	virtual void CheckJumpInput(float DeltaTime) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent,
 		class AController* EventInstigator, AActor* DamageCauser) override;
+
+	// Replace Epic Games' implementation so that we can add rush time multi
+	// ReSharper disable once CppHidingFunction
+	float GetActorTimeDilation() const;
+	// ReSharper disable once CppHidingFunction
+	float GetActorTimeDilation(const UWorld& ActorWorld) const;
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction) override;
