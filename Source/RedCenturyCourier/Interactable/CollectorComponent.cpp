@@ -82,6 +82,9 @@ void UCollectorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 		if (CollectableItem->GetAttachParentActor() != nullptr)
 			continue;
+
+		if (!CollectableItem->IsCollectable(GetOwner()))
+			continue;
 		
 		const uint8 ItemRank = RateMyCollectable(CollectableItem);
 		if (PrimeCollectable == nullptr || ItemRank < PrimeRank)

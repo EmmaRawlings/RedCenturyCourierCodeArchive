@@ -32,6 +32,10 @@ public:
 	// ReSharper disable once CppUEBlueprintCallableFunctionUnused
 	// ReSharper disable once CppUEBlueprintImplementableEventNotImplemented
 	void Discard(AActor* DiscardingActor);
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Collectable Item")
+	// ReSharper disable once CppUEBlueprintCallableFunctionUnused
+	// ReSharper disable once CppUEBlueprintImplementableEventNotImplemented
+	bool IsCollectable(AActor* CollectingActor);
 
 protected:
 	virtual void BeginPlay() override;
