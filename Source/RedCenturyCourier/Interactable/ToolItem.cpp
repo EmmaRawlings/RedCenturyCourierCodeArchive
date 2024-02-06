@@ -7,6 +7,7 @@
 AToolItem::AToolItem()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bActionActive = false;
 }
 
 void AToolItem::BeginPlay()

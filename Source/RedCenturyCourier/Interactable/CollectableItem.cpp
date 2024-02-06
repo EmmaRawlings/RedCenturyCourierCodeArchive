@@ -3,13 +3,15 @@
 
 #include "CollectableItem.h"
 
+#include "Components/BoxComponent.h"
+
 
 ACollectableItem::ACollectableItem()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	RootComponent = Mesh;
+	CollisionShape = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionShape"));
+	RootComponent = CollisionShape;
 	// Mesh->AlwaysLoadOnClient = true;
 	// Mesh->AlwaysLoadOnServer = true;
 	// Mesh->bOwnerNoSee = false;

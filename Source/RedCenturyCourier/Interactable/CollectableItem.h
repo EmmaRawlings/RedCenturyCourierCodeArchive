@@ -15,7 +15,7 @@ class REDCENTURYCOURIER_API ACollectableItem : public AActor
 public:
 	ACollectableItem();
 	UPROPERTY(Category="Collectable Item", VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> Mesh;
+	TObjectPtr<UShapeComponent> CollisionShape;
 	UPROPERTY(Category="Collectable Item", VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USphereComponent> CollectableSphere;
 	UPROPERTY(Category="Collectable Item", EditAnywhere, BlueprintReadWrite)
