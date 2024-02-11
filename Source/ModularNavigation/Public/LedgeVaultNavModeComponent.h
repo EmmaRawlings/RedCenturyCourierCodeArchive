@@ -51,22 +51,41 @@ public:
 	// main
 	/** The highest point, relative to the character's feet, where a ledge is checked to vaulted.
 	 *	Recommended this be set to be above the character's head somewhat. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float MaxHeight;
 	/** The lowest point, relative to the character's feet, where a ledge is checked to vaulted.
 	 *	Recommended this be set to around half of the character's height. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float MinHeight;
 	/** How far forwards the character can reach to grab a ledge.
 	 *	Recommended this be about as far as the character's arm span. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Ledge Vault Navigation Mode")
-	float ForwardsReach;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	float MaxReach;
+	/** TODO doc */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	float RequiredDiameter;
 	/** The maximum incline of the ledge which the character can vault onto. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float MaxSlopeAngle;
 	/** How long, in seconds, it takes to complete a ledge grab. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float Duration;
+	
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+	float GetProgress() const
+	{
+		return Progress;
+	}
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+	FVector GetFrom() const
+	{
+		return From;
+	}
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+	FVector GetTo() const
+	{
+		return To;
+	}
 	
 	virtual bool CanBegin() override;
 	virtual void Begin() override;
@@ -81,8 +100,11 @@ public:
 	}
 	virtual FString GetDebugInfo() override;
 private:
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetProgress, Category="Ledge Vault Navigation Mode")
 	float Progress = -1.f;
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetFrom, Category="Ledge Vault Navigation Mode")
 	FVector From;
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetTo, Category="Ledge Vault Navigation Mode")
 	FVector To;
 	bool DetectLedgeToVault(FVector& OutTo) const;
 };

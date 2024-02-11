@@ -87,7 +87,8 @@ ULedgeVaultNavModeComponent::ULedgeVaultNavModeComponent()
 	// Defaults
 	MaxHeight = 200.f;
 	MinHeight = 90.f;
-	ForwardsReach = 50.f;
+	MaxReach = 120.f;
+	RequiredDiameter = 60.f;
 	MaxSlopeAngle = 30.f;
 	Duration = .3f;
 }
@@ -110,6 +111,7 @@ void ULedgeVaultNavModeComponent::Begin()
 	Super::Begin();
 
 	GetCharacterMovement()->ResetAirControlDampening();
+	GetCharacter()->SetActorEnableCollision(false);
 	Progress = 0.f;
 }
 
@@ -129,6 +131,7 @@ bool ULedgeVaultNavModeComponent::ShouldEnd()
 
 void ULedgeVaultNavModeComponent::End()
 {
+	GetCharacter()->SetActorEnableCollision(true);
 	Progress = -1.f;
 	
 	Super::End();
@@ -166,33 +169,46 @@ bool ULedgeVaultNavModeComponent::DetectLedgeToVault(FVector& OutTo) const
 
 	// scan for ceiling height
 	TArray<FHitResult> OutHits;
-	const bool IsCeilingHit = UKismetSystemLibrary::CapsuleTraceMulti(
+	const bool IsCeilingHit = UKismetSystemLibrary::CapsuleTraceMultiByProfile(
 		GetWorld(), CapPos, CapPos + FVector::UpVector * MaxHeight, CapRadius, CapHalfHeight,
-		ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None,
+		 UCollisionProfile::BlockAll_ProfileName, false, ActorsToIgnore, EDrawDebugTrace::None,
 		OutHits, true);
 	const float TopHeight = IsCeilingHit ? OutHits[0].Location.Z - CapPos.Z : MaxHeight;
 	if (TopHeight <= MinHeight) return false;
 
-	for (float ScanDist = LEDGE_VAULT_SEARCH_INCREMENTS; ScanDist < ForwardsReach; ScanDist += LEDGE_VAULT_SEARCH_INCREMENTS)
+	const auto IsRequiredDiameter = [this, ActorsToIgnore](const FHitResult& CenterHit)
+	{
+		const FVector CheckPos = CenterHit.ImpactPoint
+			+ FVector::VectorPlaneProject(-GetCharacter()->GetActorForwardVector() * RequiredDiameter/2.f, CenterHit.ImpactNormal);
+		TArray<FHitResult> OutHits;
+		const bool IsLedgeHit = UKismetSystemLibrary::LineTraceMultiByProfile(GetWorld(), CheckPos + FVector::UpVector,
+			CheckPos + FVector::DownVector, UCollisionProfile::BlockAll_ProfileName, false,
+			ActorsToIgnore, EDrawDebugTrace::None, OutHits, true);
+
+		return IsLedgeHit && OutHits[0].IsValidBlockingHit();
+	};
+
+	for (float ScanDist = RequiredDiameter; ScanDist < MaxReach; ScanDist += LEDGE_VAULT_SEARCH_INCREMENTS)
 	{
 		// scan for valid ledge
 		const FVector ForwardsOffset = GetCharacter()->GetActorForwardVector() * ScanDist;
 		const FVector Start = ForwardsOffset + CapPos + FVector::UpVector * TopHeight;
 		const FVector End = ForwardsOffset + CapPos + FVector::UpVector * MinHeight;
 		OutHits.Empty();
-		const bool IsLedgeHit = UKismetSystemLibrary::CapsuleTraceMulti(
-			GetWorld(), Start, End, CapRadius, CapHalfHeight, ETraceTypeQuery::TraceTypeQuery1, false,
+		const bool IsLedgeHit = UKismetSystemLibrary::CapsuleTraceMultiByProfile(
+			GetWorld(), Start, End, CapRadius, CapHalfHeight, UCollisionProfile::BlockAll_ProfileName, false,
 			ActorsToIgnore, EDrawDebugTrace::None, OutHits, true);
 		if (IsLedgeHit
 			&& OutHits[0].IsValidBlockingHit()
-			&& FModularNavigationUtils::AngleInDegrees(OutHits[0].Normal, FVector::UpVector) <= MaxSlopeAngle)
+			&& FModularNavigationUtils::AngleInDegrees(OutHits[0].Normal, FVector::UpVector) <= MaxSlopeAngle
+			&& IsRequiredDiameter(OutHits[0]))
 		{
 			// scan for wall
 			const FVector ResultPos = OutHits[0].Location;
 			OutHits.Empty();
-			const bool IsWallHit = UKismetSystemLibrary::CapsuleTraceMulti(
+			const bool IsWallHit = UKismetSystemLibrary::CapsuleTraceMultiByProfile(
 				GetWorld(), ResultPos, FVector(CapPos.X, CapPos.Y, ResultPos.Z), CapRadius, CapHalfHeight,
-				ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None,
+				UCollisionProfile::BlockAll_ProfileName, false, ActorsToIgnore, EDrawDebugTrace::None,
 				OutHits, true);
 			if (IsWallHit) return false;
 			// valid ledge with no wall in the way
@@ -202,23 +218,24 @@ bool ULedgeVaultNavModeComponent::DetectLedgeToVault(FVector& OutTo) const
 	}
 	// TODO shameless copy paste!..
 	// scan for valid ledge
-	const FVector ForwardsOffset = GetCharacter()->GetActorForwardVector() * ForwardsReach;
+	const FVector ForwardsOffset = GetCharacter()->GetActorForwardVector() * MaxReach;
 	const FVector Start = ForwardsOffset + CapPos + FVector::UpVector * TopHeight;
 	const FVector End = ForwardsOffset + CapPos + FVector::UpVector * MinHeight;
 	OutHits.Empty();
-	const bool IsLedgeHit = UKismetSystemLibrary::CapsuleTraceMulti(
-		GetWorld(), Start, End, CapRadius, CapHalfHeight, ETraceTypeQuery::TraceTypeQuery1, false,
+	const bool IsLedgeHit = UKismetSystemLibrary::CapsuleTraceMultiByProfile(
+		GetWorld(), Start, End, CapRadius, CapHalfHeight, UCollisionProfile::BlockAll_ProfileName, false,
 		ActorsToIgnore, EDrawDebugTrace::None, OutHits, true);
 	if (IsLedgeHit
 		&& OutHits[0].IsValidBlockingHit()
-		&& FModularNavigationUtils::AngleInDegrees(OutHits[0].Normal, FVector::UpVector) <= MaxSlopeAngle)
+		&& FModularNavigationUtils::AngleInDegrees(OutHits[0].Normal, FVector::UpVector) <= MaxSlopeAngle
+		&& IsRequiredDiameter(OutHits[0]))
 	{
 		// scan for wall
 		const FVector ResultPos = OutHits[0].Location;
 		OutHits.Empty();
-		const bool IsWallHit = UKismetSystemLibrary::CapsuleTraceMulti(
+		const bool IsWallHit = UKismetSystemLibrary::CapsuleTraceMultiByProfile(
 			GetWorld(), ResultPos, FVector(CapPos.X, CapPos.Y, ResultPos.Z), CapRadius, CapHalfHeight,
-			ETraceTypeQuery::TraceTypeQuery1, false, ActorsToIgnore, EDrawDebugTrace::None,
+			UCollisionProfile::BlockAll_ProfileName, false, ActorsToIgnore, EDrawDebugTrace::None,
 			OutHits, true);
 		if (IsWallHit) return false;
 		// valid ledge with no wall in the way
