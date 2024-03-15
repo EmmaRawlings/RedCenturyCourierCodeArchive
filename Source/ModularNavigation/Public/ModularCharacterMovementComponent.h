@@ -88,6 +88,12 @@ public:
 	/** The curve that dictate progress towards crouching and uncrouching when using smooth crouch. */
 	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
 	UCurveFloat* CrouchCurve;
+	/** TODO emling doc this... */
+	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	float SmoothCrouchedStateThreshold;
+	/** TODO emling doc this... */
+	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	float SmoothUnCrouchedStateThreshold;
 	
 	/** The highest point, relative to the character's feet, where a ledge is checked to step.
 	*	Recommended this be set to sit around the character's knees. */
@@ -121,8 +127,9 @@ public:
 	virtual void Crouch(bool bClientSimulation = false) override;
 	virtual void UnCrouch(bool bClientSimulation = false) override;
 private:
-	UFUNCTION()
-	void HandleCrouchProgress(float Value);
+	// UFUNCTION()
+	void ProcessSmoothCrouch(float DeltaTime);
+	bool HandleCrouchProgress(float Value);
 
 	// Movement Parameter Context
 public:
@@ -180,9 +187,11 @@ private:
 	FCharacterModularMoveResponseDataContainer MoveResponseDataContainer;
 	bool bMovementParameterOverride;
 	FMovementParameterContext MovementParameterContext;
-	float CrouchProgress;
+	float SmoothCrouchTime;
+	float CrouchAlpha;
 	float UnCrouchedHalfHeight;
-	bool bCrouchIsClientSimulation;
-	FTimeline CrouchTimeline;
+	// TODO smooth crouch replication bool bCrouchIsClientSimulation;
+	bool bCrouchIntent;
+	// FTimeline CrouchTimeline;
 	FAirControlDampenInfo AirControlDampenInfo;
 };

@@ -164,6 +164,8 @@ UModularCharacterMovementComponent::UModularCharacterMovementComponent()
 	InAirStepMaxDist = 5.f;
 	InAirStepMaxVerticalSpeed = 200.f;
 	bInAirStepResetVerticalSpeed = true;
+	SmoothCrouchedStateThreshold = 0.f;
+	SmoothUnCrouchedStateThreshold = 1.f;
 	// CrouchCurve = CreateDefaultSubobject<UCurveFloat>(TEXT("CrouchCurve"));
 
 	// Nav mode
@@ -180,13 +182,13 @@ void UModularCharacterMovementComponent::BeginPlay()
 
 	MapOutNavModesOnBeginPlay();
 
-	if (CrouchCurve)
-	{
-		FOnTimelineFloat CrouchProgressFunction;
-		CrouchProgressFunction.BindUFunction(this, FName("HandleCrouchProgress"));
-		CrouchTimeline.AddInterpFloat(CrouchCurve, CrouchProgressFunction);
-		CrouchTimeline.SetLooping(false);
-	}
+	// if (CrouchCurve)
+	// {
+	// 	FOnTimelineFloat CrouchProgressFunction;
+	// 	CrouchProgressFunction.BindUFunction(this, FName("HandleCrouchProgress"));
+	// 	CrouchTimeline.AddInterpFloat(CrouchCurve, CrouchProgressFunction);
+	// 	CrouchTimeline.SetLooping(false);
+	// }
 }
 
 void UModularCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -197,7 +199,7 @@ void UModularCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTi
 	LastSurfaceNormal = &this->CurrentFloor.HitResult.Normal;
 	
 	if (bUseSmoothCrouch)
-		CrouchTimeline.TickTimeline(DeltaTime);
+		ProcessSmoothCrouch(DeltaTime);
 }
 
 #pragma region NavigationModes
@@ -283,109 +285,187 @@ void UModularCharacterMovementComponent::Crouch(bool bClientSimulation)
 	const ACharacter* DefaultCharacter = CharacterOwner->GetClass()->GetDefaultObject<ACharacter>();
 	UnCrouchedHalfHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 	
-	Super::Crouch(bClientSimulation);
+	// Super::Crouch(bClientSimulation);
 
-	bCrouchIsClientSimulation = bClientSimulation;
-	if (bUseSmoothCrouch)
-		CrouchTimeline.Play();
-	else
+	// TODO smooth crouch replication bCrouchIsClientSimulation = bClientSimulation;
+
+	// TODO can't interupt uncrouch if we haven't hit the uncrouch threshold (doesn't affect current project settings)
+	
+	bCrouchIntent = true;
+	if (!bUseSmoothCrouch) {
 		HandleCrouchProgress(1.f);
-		// Cast<AModularNavigationCharacter>(GetCharacterOwner())
-		// 	->CapsuleHeadRoot
-		// 	->SetRelativeLocation(FVector(0.f, 0.f,
-		// 		-(UnCrouchedHalfHeight - CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight())
-		// 		* CharacterOwner->GetCapsuleComponent()->GetShapeScale()));
+	}
 }
 
 void UModularCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 {
-	UE_LOGFMT(LogModularNavigation, Log, "uncrouching...");
-	Super::UnCrouch(bClientSimulation);
+	// Super::UnCrouch(bClientSimulation);
 	
-	bCrouchIsClientSimulation = bClientSimulation;
-	if (bUseSmoothCrouch)
-		CrouchTimeline.Reverse();
-	// else
-	// 	HandleCrouchProgress(0.f);
-		// Cast<AModularNavigationCharacter>(GetCharacterOwner())
-		// 	->CapsuleHeadRoot
-		// 	->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
+	// TODO smooth crouch replication bCrouchIsClientSimulation = bClientSimulation;
+
+	// TODO can't interupt crouch if we haven't hit the crouch threshold (doesn't affect current project settings)
+	
+	bCrouchIntent = false;
+	if (!bUseSmoothCrouch)
+	{
+		HandleCrouchProgress(0.f);
+	}
 }
 
-void UModularCharacterMovementComponent::HandleCrouchProgress(float Value)
+const auto CalcSmoothCrouchAlpha = [](const UCurveFloat* CrouchCurve, float Alpha)
 {
-	const float ClampedValue = FMath::Clamp(Value, 0.f, 1.f);
-	if (ClampedValue == CrouchProgress) return;
-	CrouchProgress = ClampedValue;
-	
+	return FMath::Clamp(CrouchCurve->GetFloatValue(Alpha), 0.f, 1.f);
+};
+
+void UModularCharacterMovementComponent::ProcessSmoothCrouch(float DeltaTime)
+{
+	const float ProposedSmoothCrouchTime = FMath::Clamp(
+		SmoothCrouchTime + (bCrouchIntent ? DeltaTime : -DeltaTime),
+		0.f,
+		CrouchCurve->FloatCurve.GetLastKey().Time);
+	if (ProposedSmoothCrouchTime != SmoothCrouchTime && HandleCrouchProgress(CalcSmoothCrouchAlpha(CrouchCurve, ProposedSmoothCrouchTime)))
+	{
+		SmoothCrouchTime = ProposedSmoothCrouchTime;
+	}
+}
+
+bool UModularCharacterMovementComponent::HandleCrouchProgress(float NewAlpha)
+{
 	if (!HasValidData())
+		return false;
+	if (/* TODO smooth crouch replication !bCrouchIsClientSimulation && */!CanCrouchInCurrentState())
+		return false;
+	
+	const float Delta = NewAlpha - CrouchAlpha;
+
+	if (Delta == 0)
 	{
-		return;
+		// Commit changes
+		// UE_LOG(LogTemp, Log, TEXT("Crouch handled with no change required."));
+		return true;
+	}
+	
+	const auto CalcProposedNewHalfHeight = [this](float UnscaledRadius, float ProposedCrouchProgress)
+	{
+		// Height is not allowed to be smaller than radius.
+		return FMath::Max3(0.f, UnscaledRadius,
+			FMath::Lerp(UnCrouchedHalfHeight, GetCrouchedHalfHeight(), ProposedCrouchProgress));
+	};
+
+	const float UnscaledRadius = CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+	const float ScaledCurrentHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	const float ProposedHalfHeight = CalcProposedNewHalfHeight(UnscaledRadius, NewAlpha);
+	const float ScaledProposedHalfHeight = ProposedHalfHeight * CharacterOwner->GetCapsuleComponent()->GetShapeScale();
+	//const float HalfHeightAdjust = (UnCrouchedHalfHeight - ProposedHalfHeight);
+	const float ScaledHalfHeightAdjust = ScaledProposedHalfHeight - ScaledCurrentHalfHeight;
+
+	// As per epic's implementation, bCrouchMaintainsBaseLocation is set true when on ground and false otherwise;
+	//	however, this behaviour could be overridden. It's optimal to maintain base if on ground as the encroaching
+	//	adjustment code further down would simply do this anyway (incurring sweep checks in the process).
+	const bool bMaintainingBaseLocation = bCrouchMaintainsBaseLocation || IsMovingOnGround();
+	float ZPosAdjust = bMaintainingBaseLocation ? ScaledHalfHeightAdjust : 0.f;
+
+	// if capsule height is increasing, then sweep for ceiling
+	if (ScaledHalfHeightAdjust > 0)
+	{
+		// Try to stay in place and see if the larger capsule fits. We use a slightly taller capsule to avoid penetration.
+		const UWorld* MyWorld = GetWorld();
+		const float SweepInflation = UE_KINDA_SMALL_NUMBER * 10.f;
+		FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, CharacterOwner);
+		FCollisionResponseParams ResponseParam;
+		InitCollisionParams(CapsuleParams, ResponseParam);
+
+		// Compensate for the difference between current capsule size and standing size
+		const FCollisionShape StandingCapsuleShape =
+			// Shrink by negative amount, so actually grow it.
+			GetPawnCapsuleCollisionShape(SHRINK_HeightCustom, -SweepInflation - ScaledHalfHeightAdjust);
+		const ECollisionChannel CollisionChannel = UpdatedComponent->GetCollisionObjectType();
+
+		const auto IsEncroached = [this, MyWorld, ZPosAdjust, StandingCapsuleShape, CapsuleParams, ResponseParam]()
+		{
+			return MyWorld->OverlapBlockingTestByChannel(
+			UpdatedComponent->GetComponentLocation() + FVector(0.f,0.f,ZPosAdjust),
+			FQuat::Identity, UpdatedComponent->GetCollisionObjectType(),
+			StandingCapsuleShape, CapsuleParams, ResponseParam);
+		};
+		
+		// If encroached, attempt adjustment, or cancel if no room
+		if( IsEncroached() )
+		{
+			// sweep constants
+			float PawnRadius, PawnHalfHeight;
+			CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleSize(PawnRadius, PawnHalfHeight);
+			const float ShrinkHalfHeight = PawnHalfHeight - PawnRadius;
+			const float TraceDist = PawnRadius + ScaledHalfHeightAdjust;
+			const FCollisionShape ShortCapsuleShape = GetPawnCapsuleCollisionShape(SHRINK_HeightCustom, ShrinkHalfHeight);
+
+			const auto SweepAdjust = [this, MyWorld, CollisionChannel, ShortCapsuleShape, CapsuleParams, TraceDist](float DistMulti, float& ZPosAdjust)
+			{
+				const FVector StartToEnd = FVector(0.f, 0.f, DistMulti * TraceDist);
+				FHitResult Hit;
+				if (MyWorld->SweepSingleByChannel(Hit, UpdatedComponent->GetComponentLocation(),
+					UpdatedComponent->GetComponentLocation() + StartToEnd, FQuat::Identity, CollisionChannel, ShortCapsuleShape, CapsuleParams))
+				{
+					ZPosAdjust = -1 * DistMulti * (TraceDist - Hit.Distance);
+					return true;
+				}
+				return false;
+			};
+
+			// adjust upwards up in case of floor (we could be in air just above floor)
+			bool bFloorHit = false;
+			if (!bMaintainingBaseLocation)
+			{
+				bFloorHit = SweepAdjust(-1, ZPosAdjust);
+			}
+
+			// adjust downwards in case of ceiling
+			if (!bFloorHit)
+			{
+				SweepAdjust(+1, ZPosAdjust);
+			}
+
+			if (IsEncroached())
+				return false;
+		}
 	}
 
-	if (!bCrouchIsClientSimulation && !CanCrouchInCurrentState())
-	{
-		return;
-	}
+	// Commit changes
+	// UE_LOG(LogTemp, Log, TEXT("Crouch handled with cimmited changes: CrouchAlpha = %f, HalfHeight = %f, ZPosAdjust = %f"),
+	// 	NewAlpha, ProposedHalfHeight, ZPosAdjust);
 
-	// Change collision size to crouching dimensions
-	const float ComponentScale = CharacterOwner->GetCapsuleComponent()->GetShapeScale();
-	const float OldUnscaledRadius = CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-	// Height is not allowed to be smaller than radius.
-	const float ClampedCrouchedHalfHeight = FMath::Max3(0.f, OldUnscaledRadius, FMath::Lerp(UnCrouchedHalfHeight, GetCrouchedHalfHeight(), CrouchProgress));
-	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, ClampedCrouchedHalfHeight);
-	const float HalfHeightAdjust = (UnCrouchedHalfHeight - ClampedCrouchedHalfHeight);
-	const float ScaledHalfHeightAdjust = HalfHeightAdjust * ComponentScale;
-
+	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(UnscaledRadius, ProposedHalfHeight, true);
 	Cast<AModularNavigationCharacter>(GetCharacterOwner())
 		->CapsuleHeadRoot
-		->SetRelativeLocation(FVector(0.f, 0.f, -ScaledHalfHeightAdjust));
-
-	if( !bCrouchIsClientSimulation )
+		->SetRelativeLocation(FVector(0.f, 0.f, ProposedHalfHeight - UnCrouchedHalfHeight));
+	if (bCrouchMaintainsBaseLocation)
 	{
-		// Crouching to a larger height? (this is rare)
-		if (ClampedCrouchedHalfHeight > UnCrouchedHalfHeight)
-		{
-			FCollisionQueryParams CapsuleParams(SCENE_QUERY_STAT(CrouchTrace), false, CharacterOwner);
-			FCollisionResponseParams ResponseParam;
-			InitCollisionParams(CapsuleParams, ResponseParam);
-			const bool bEncroached = GetWorld()->OverlapBlockingTestByChannel(UpdatedComponent->GetComponentLocation() - FVector(0.f,0.f,ScaledHalfHeightAdjust), FQuat::Identity,
-				UpdatedComponent->GetCollisionObjectType(), GetPawnCapsuleCollisionShape(SHRINK_None), CapsuleParams, ResponseParam);
-
-			// If encroached, cancel
-			if( bEncroached )
-			{
-				CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(OldUnscaledRadius, UnCrouchedHalfHeight);
-				return;
-			}
-		}
-
-		if (bCrouchMaintainsBaseLocation)
-		{
-			// Intentionally not using MoveUpdatedComponent, where a horizontal plane constraint would prevent the base of the capsule from staying at the same spot.
-			UpdatedComponent->MoveComponent(FVector(0.f, 0.f, -ScaledHalfHeightAdjust), UpdatedComponent->GetComponentQuat(), true, nullptr, EMoveComponentFlags::MOVECOMP_NoFlags, ETeleportType::TeleportPhysics);
-		}
-
+		// Intentionally not using MoveUpdatedComponent, where a horizontal plane constraint would prevent the base of
+		//	the capsule from staying at the same spot.
+		UpdatedComponent->MoveComponent(FVector(0.f, 0.f, ZPosAdjust),
+			UpdatedComponent->GetComponentQuat(), true, nullptr,
+			EMoveComponentFlags::MOVECOMP_NoFlags, ETeleportType::TeleportPhysics);
+	}
+	
+	const float ComponentScale = CharacterOwner->GetCapsuleComponent()->GetShapeScale();
+	const float OverallHalfHeightAdjust = GetCrouchedHalfHeight() - UnCrouchedHalfHeight;
+	const float ScaledOverallHalfHeightAdjust = OverallHalfHeightAdjust * ComponentScale;
+	if (Delta > 0.f && !CharacterOwner->bIsCrouched && (!bUseSmoothCrouch || NewAlpha >= SmoothCrouchedStateThreshold))
+	{
 		CharacterOwner->bIsCrouched = true;
+		CharacterOwner->OnStartCrouch( -OverallHalfHeightAdjust, -ScaledOverallHalfHeightAdjust );
+	}
+	else if (Delta < 0.f && CharacterOwner->bIsCrouched && (!bUseSmoothCrouch || NewAlpha <= SmoothUnCrouchedStateThreshold))
+	{
+		CharacterOwner->bIsCrouched = false;
+		CharacterOwner->OnEndCrouch( OverallHalfHeightAdjust, ScaledOverallHalfHeightAdjust );
 	}
 
 	bForceNextFloorCheck = true;
+	
+	CrouchAlpha = NewAlpha;
 
-	// OnStartCrouch takes the change from the Default size, not the current one (though they are usually the same).
-	const float MeshAdjust = ScaledHalfHeightAdjust;
-
-	AdjustProxyCapsuleSize();
-
-	// Don't smooth this change in mesh position
-	if ((bCrouchIsClientSimulation && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) || (IsNetMode(NM_ListenServer) && CharacterOwner->GetRemoteRole() == ROLE_AutonomousProxy))
-	{
-		FNetworkPredictionData_Client_Character* ClientData = GetPredictionData_Client_Character();
-		if (ClientData)
-		{
-			ClientData->MeshTranslationOffset -= FVector(0.f, 0.f, MeshAdjust);
-			ClientData->OriginalMeshTranslationOffset = ClientData->MeshTranslationOffset;
-		}
-	}
+	return true;
 }
 
 #pragma endregion SmoothCrouch
@@ -434,7 +514,8 @@ float UModularCharacterMovementComponent::GetMaxSpeed() const
 	case MOVE_Walking:
 	case MOVE_NavWalking:
 		if (bUseSmoothCrouch)
-			return FMath::Lerp(MaxWalkSpeed, MaxWalkSpeedCrouched, CrouchProgress);
+			return FMath::Lerp(MaxWalkSpeed, MaxWalkSpeedCrouched,
+				bUseSmoothCrouch ? CalcSmoothCrouchAlpha(CrouchCurve, SmoothCrouchTime) : 1.f);
 	default:
 		return Super::GetMaxSpeed();
 	}
