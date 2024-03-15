@@ -206,6 +206,12 @@ public:
 		return TimeSinceJump;
 	}
 	
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+	float GetTimer() const
+	{
+		return Timer;
+	}
+	
 protected:
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -236,6 +242,7 @@ private:
 	void AddClimbImpulse(float ImpulseUpwards, bool bVelocityChange) const;
 	void ResetTimer();
 	void JumpIdle(float DeltaTime);
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetTimer, Category="Wall Navigation Mode")
 	float Timer;
 	FWallNavigationInfo LastUsedWallNavigationInfo;
 	float TimeSinceNavEnd;

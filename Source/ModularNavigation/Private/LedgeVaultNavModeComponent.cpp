@@ -90,7 +90,9 @@ ULedgeVaultNavModeComponent::ULedgeVaultNavModeComponent()
 	MaxReach = 120.f;
 	RequiredDiameter = 60.f;
 	MaxSlopeAngle = 30.f;
-	Duration = .3f;
+	Duration = 1.f;
+	bUseTravelSpeed = true;
+	TravelSpeed = 500.f;
 }
 
 bool ULedgeVaultNavModeComponent::CanBegin()
@@ -117,7 +119,7 @@ void ULedgeVaultNavModeComponent::Begin()
 
 void ULedgeVaultNavModeComponent::Exec(float DeltaTime)
 {
-	Progress += DeltaTime / Duration;
+	Progress += FMath::Max(TravelSpeed * DeltaTime / FVector::Dist(From, To), DeltaTime / Duration);
 	GetCharacter()->SetActorLocation(FMath::Lerp(From, To, FMath::Min(Progress, 1.f)));
 	GetCharacterMovement()->Velocity = FVector::ZeroVector;
 	

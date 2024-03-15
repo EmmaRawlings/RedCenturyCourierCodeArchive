@@ -67,9 +67,16 @@ public:
 	/** The maximum incline of the ledge which the character can vault onto. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float MaxSlopeAngle;
-	/** How long, in seconds, it takes to complete a ledge grab. */
+	/** How long, in seconds, it takes to complete a ledge grab.
+	 * If bUseTravelSpeed is set, this defines the maximum possible duration. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
 	float Duration;
+	/** TODO doc */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	bool bUseTravelSpeed;
+	/** TODO doc */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	float TravelSpeed;
 	
 	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
 	float GetProgress() const
