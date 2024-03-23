@@ -156,48 +156,48 @@ public:
 
 	// main
 	/** The distance traveled by the dash. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float Distance;
 	/** The duration of the dash. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float Duration;
 	/** The distance traveled by the dash, in air, compared to the usual grounded dash. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float AirDistanceRatio;
 	/** The duration of the dash, in air, compared to the usual grounded dash. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float AirDurationRatio;
 	/** Whether the dash is limited to lateral motion only (non-vertical). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	bool bLateralOnly;
 	/** Proportion of momentum to maintain after the dash ends.  */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float MaxInheritFactor;
 	/** How much air control the character must have before they are allowed to use the air dash. This can be useful for
 	 * preventing players from repeatedly wall running/climbing. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float MinimumAirControlForAirDash;
 	/** Whether or not the air dash distance/speed should be proportional to the character's air control. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	bool bAirControlAffectsAirDashDistance;
 	/** Which air dash method to use, each controller has its own set of parameters. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	TObjectPtr<UAirDashNavController> AirDashController;
 	/** Time, in seconds, before the dash may be used again (after the last one has ended). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dash Nav Mode")
 	float Cooldown;
 
 	/** Use travel curve for ground dashes (see TravelCurve). */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, Category="Dash Nav Mode")
 	bool bUseTravelCurveOnGround;
 	/** Use travel curve for air dashes (see TravelCurve). */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, Category="Dash Nav Mode")
 	bool bUseTravelCurveInAir;
 	/** Rather than performing a dash with linear constant velocity, use this property to curve the velocity of the dash (e.g. dash is faster at the beginning but slower towards the end). */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(EditAnywhere, Category="Dash Nav Mode")
 	UCurveFloat* TravelCurve;
 
-	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly, Category="EsperFPS | Dash Navigation Mode")
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly, Category="Dash Nav Mode")
 	FVector_NetQuantizeNormal GetDirection() const
 	{
 		return Direction;
@@ -225,7 +225,7 @@ private:
 	float Timer;
 	float CooldownTimer;
 	FVector_NetQuantizeNormal InputDirection;
-	UPROPERTY(BlueprintGetter=GetDirection, Category="EsperFPS | Dash Navigation Mode")
+	UPROPERTY(BlueprintGetter=GetDirection, Category="Dash Nav Mode")
 	FVector_NetQuantizeNormal Direction;
 	
 	FTimeline TravelTimeline;

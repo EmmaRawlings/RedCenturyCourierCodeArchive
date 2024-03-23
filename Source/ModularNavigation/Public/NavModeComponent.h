@@ -91,7 +91,7 @@ protected:
 	virtual void CopyFrom(const FNavModeNetworkSavedData* Original);
 };
 
-/** Abstract class that represents a single navigation mode that a character may enter (slide, wall run, wall jump, ledge vault, etc). */
+/** Abstract class that represents a single nav mode that a character may enter (slide, wall run, wall jump, ledge vault, etc). */
 UCLASS(Abstract, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MODULARNAVIGATION_API UNavModeComponent : public UActorComponent
 {

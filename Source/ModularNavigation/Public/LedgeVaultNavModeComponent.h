@@ -51,31 +51,31 @@ public:
 	// main
 	/** The highest point, relative to the character's feet, where a ledge is checked to vaulted.
 	 *	Recommended this be set to be above the character's head somewhat. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float MaxHeight;
 	/** The lowest point, relative to the character's feet, where a ledge is checked to vaulted.
 	 *	Recommended this be set to around half of the character's height. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float MinHeight;
 	/** How far forwards the character can reach to grab a ledge.
 	 *	Recommended this be about as far as the character's arm span. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float MaxReach;
 	/** TODO doc */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float RequiredDiameter;
 	/** The maximum incline of the ledge which the character can vault onto. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float MaxSlopeAngle;
 	/** How long, in seconds, it takes to complete a ledge grab.
 	 * If bUseTravelSpeed is set, this defines the maximum possible duration. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float Duration;
 	/** TODO doc */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	bool bUseTravelSpeed;
 	/** TODO doc */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Ledge Vault Nav Mode")
 	float TravelSpeed;
 	
 	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
@@ -107,11 +107,11 @@ public:
 	}
 	virtual FString GetDebugInfo() override;
 private:
-	UPROPERTY(EditAnywhere, BlueprintGetter=GetProgress, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetProgress, Category="Ledge Vault Nav Mode")
 	float Progress = -1.f;
-	UPROPERTY(EditAnywhere, BlueprintGetter=GetFrom, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetFrom, Category="Ledge Vault Nav Mode")
 	FVector From;
-	UPROPERTY(EditAnywhere, BlueprintGetter=GetTo, Category="Ledge Vault Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintGetter=GetTo, Category="Ledge Vault Nav Mode")
 	FVector To;
 	bool DetectLedgeToVault(FVector& OutTo) const;
 };

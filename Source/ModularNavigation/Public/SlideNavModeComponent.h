@@ -37,32 +37,32 @@ public:
 	// main
 	/** How much friction to apply during a slide on any surface. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float Friction;
 	/** The acceleration to apply when inputting movement. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float MovementAcceleration;
 	/** The speed threshold to pass to be able to enter a slide. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float EnterThreshold;
 	/** The speed threshold which exits the slide, when the speed falls below it */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float ExitThreshold;
 private:
 	/** Impulse to apply when entering a slide whilst walking. */
 	UPROPERTY(EditAnywhere, BlueprintGetter=GetImpulse, BlueprintSetter=SetImpulse, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float Impulse;
 public:
 	/** Impulse is consumed when applied, and recovers over time. This determines the time the impulse takes to recover. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (ClampMin = "0.0", UIMin = "0.0"),
-		Category="EsperFPS | Slide Navigation Mode")
+		Category="Slide Nav Mode")
 	float ImpulseRecoveryTime;
 	/** Maximum total speed to boost the character up to when applying impulse on entering a slide. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Slide Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Slide Nav Mode")
 	float MaxImpulseSpeed;
 	
 	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)

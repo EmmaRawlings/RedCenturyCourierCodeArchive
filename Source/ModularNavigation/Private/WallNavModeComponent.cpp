@@ -52,10 +52,10 @@ class ULedgeVaultNavModeComponent;
 void FWallNavModeNetworkSavedData::Clear()
 {
 	FNavModeNetworkSavedData::Clear();
-	WallNavigationInfo = FWallNavigationInfo();
+	WallNavInfo = FWallNavInfo();
 	TimeSinceJump = 0.f;
 	Timer = 0.f;
-	LastUsedWallNavigationInfo = FWallNavigationInfo();
+	LastUsedWallNavInfo = FWallNavInfo();
 	TimeSinceNavEnd = 0.f;
 }
 
@@ -64,10 +64,10 @@ void FWallNavModeNetworkSavedData::RecordPostUpdate(ACharacter* Char, UNavModeCo
 {
 	FNavModeNetworkSavedData::RecordPostUpdate(Char, NavMode, PostUpdateMode);
 	const UWallNavModeComponent* WallNavMode = Cast<UWallNavModeComponent>(NavMode);
-	WallNavigationInfo = WallNavMode->WallNavigationInfo;
+	WallNavInfo = WallNavMode->WallNavInfo;
 	TimeSinceJump = WallNavMode->TimeSinceJump;
 	Timer = WallNavMode->Timer;
-	LastUsedWallNavigationInfo = WallNavMode->LastUsedWallNavigationInfo;
+	LastUsedWallNavInfo = WallNavMode->LastUsedWallNavInfo;
 	TimeSinceNavEnd = WallNavMode->TimeSinceNavEnd;
 }
 
@@ -77,25 +77,25 @@ void FWallNavModeNetworkSavedData::Serialize(FArchive& Ar, UPackageMap* PackageM
 	const bool bIsSaving = Ar.IsSaving();
 	bool bLocalSuccess = true;
 
-	bool WallNavigationInfo_bValid = WallNavigationInfo.bValid;
-	FVector_NetQuantizeNormal WallNavigationInfo_ImpactNormal = WallNavigationInfo.ImpactNormal;
+	bool WallNavigationInfo_bValid = WallNavInfo.bValid;
+	FVector_NetQuantizeNormal WallNavigationInfo_ImpactNormal = WallNavInfo.ImpactNormal;
 	SerializeOptionalValue<bool>(bIsSaving, Ar, WallNavigationInfo_bValid, false);
 	WallNavigationInfo_ImpactNormal.NetSerialize(Ar, PackageMap, bLocalSuccess);
 	if (!bIsSaving)
 	{
-		WallNavigationInfo = WallNavigationInfo_bValid ? FWallNavigationInfo(WallNavigationInfo_ImpactNormal) : FWallNavigationInfo();
+		WallNavInfo = WallNavigationInfo_bValid ? FWallNavInfo(WallNavigationInfo_ImpactNormal) : FWallNavInfo();
 	}
 	
 	FModularNavigationUtils::NetSerializeFloat(Ar, TimeSinceJump, 10, bLocalSuccess);
 	FModularNavigationUtils::NetSerializeFloat(Ar, Timer, 10, bLocalSuccess);
 	
-	bool LastUsedWallNavigationInfo_bValid = LastUsedWallNavigationInfo.bValid;
-	FVector_NetQuantizeNormal LastUsedWallNavigationInfo_ImpactNormal = LastUsedWallNavigationInfo.ImpactNormal;
+	bool LastUsedWallNavigationInfo_bValid = LastUsedWallNavInfo.bValid;
+	FVector_NetQuantizeNormal LastUsedWallNavigationInfo_ImpactNormal = LastUsedWallNavInfo.ImpactNormal;
 	SerializeOptionalValue<bool>(bIsSaving, Ar, LastUsedWallNavigationInfo_bValid, false);
 	LastUsedWallNavigationInfo_ImpactNormal.NetSerialize(Ar, PackageMap, bLocalSuccess);
 	if (!bIsSaving)
 	{
-		LastUsedWallNavigationInfo = LastUsedWallNavigationInfo_bValid ? FWallNavigationInfo(LastUsedWallNavigationInfo_ImpactNormal) : FWallNavigationInfo();
+		LastUsedWallNavInfo = LastUsedWallNavigationInfo_bValid ? FWallNavInfo(LastUsedWallNavigationInfo_ImpactNormal) : FWallNavInfo();
 	}
 	
 	FModularNavigationUtils::NetSerializeFloat(Ar, TimeSinceNavEnd, 10, bLocalSuccess);
@@ -105,10 +105,10 @@ void FWallNavModeNetworkSavedData::Fill(ACharacter* Char, UNavModeComponent* Nav
 {
 	FNavModeNetworkSavedData::Fill(Char, NavMode);
 	UWallNavModeComponent* WallNavMode = Cast<UWallNavModeComponent>(NavMode);
-	WallNavMode->WallNavigationInfo = WallNavigationInfo;
+	WallNavMode->WallNavInfo = WallNavInfo;
 	WallNavMode->TimeSinceJump = TimeSinceJump;
 	WallNavMode->Timer = Timer;
-	WallNavMode->LastUsedWallNavigationInfo = LastUsedWallNavigationInfo;
+	WallNavMode->LastUsedWallNavInfo = LastUsedWallNavInfo;
 	WallNavMode->TimeSinceNavEnd = TimeSinceNavEnd;
 }
 
@@ -119,10 +119,10 @@ bool FWallNavModeNetworkSavedData::CheckForError(ACharacter* Char, UNavModeCompo
 
 	const UWallNavModeComponent* WallNavMode = Cast<UWallNavModeComponent>(NavMode);
 	
-	if (WallNavMode->WallNavigationInfo.bValid != WallNavigationInfo.bValid)
+	if (WallNavMode->WallNavInfo.bValid != WallNavInfo.bValid)
 		return true;
 	// TODO constant
-	if (FModularNavigationUtils::AngleInDegrees(WallNavMode->WallNavigationInfo.ImpactNormal, WallNavigationInfo.ImpactNormal) > 1.f)
+	if (FModularNavigationUtils::AngleInDegrees(WallNavMode->WallNavInfo.ImpactNormal, WallNavInfo.ImpactNormal) > 1.f)
 		return true;
 	
 	// TODO constant
@@ -131,10 +131,10 @@ bool FWallNavModeNetworkSavedData::CheckForError(ACharacter* Char, UNavModeCompo
 	if (WallNavMode->Timer - Timer > 1.f/1000.f)
 		return true;
 	
-	if (WallNavMode->LastUsedWallNavigationInfo.bValid != LastUsedWallNavigationInfo.bValid)
+	if (WallNavMode->LastUsedWallNavInfo.bValid != LastUsedWallNavInfo.bValid)
 		return true;
 	// TODO constant
-	if (FModularNavigationUtils::AngleInDegrees(WallNavMode->LastUsedWallNavigationInfo.ImpactNormal, LastUsedWallNavigationInfo.ImpactNormal) > 1.f)
+	if (FModularNavigationUtils::AngleInDegrees(WallNavMode->LastUsedWallNavInfo.ImpactNormal, LastUsedWallNavInfo.ImpactNormal) > 1.f)
 		return true;
 	
 	// TODO constant
@@ -153,10 +153,10 @@ void FWallNavModeNetworkSavedData::CopyFrom(const FNavModeNetworkSavedData* Orig
 {
 	FNavModeNetworkSavedData::CopyFrom(Original);
 	const FWallNavModeNetworkSavedData* OriginalWall = static_cast<const FWallNavModeNetworkSavedData*>(Original);
-	WallNavigationInfo = OriginalWall->WallNavigationInfo;
+	WallNavInfo = OriginalWall->WallNavInfo;
 	TimeSinceJump = OriginalWall->TimeSinceJump;
 	Timer = OriginalWall->Timer;
-	LastUsedWallNavigationInfo = OriginalWall->LastUsedWallNavigationInfo;
+	LastUsedWallNavInfo = OriginalWall->LastUsedWallNavInfo;
 	TimeSinceNavEnd = OriginalWall->TimeSinceNavEnd;
 }
 
@@ -200,7 +200,7 @@ UWallNavModeComponent::UWallNavModeComponent()
 	WallJumpLateralVelocity = 700.f;
 	WallJumpAirControl = 1.0f;
 	WallJumpAirControlRecoveryTime = 0.f;
-	bResetWallNavigationOnWallJump = true;
+	bResetWallNavOnWallJump = true;
 	WallJumpInputInfluence = 0.f;
 
 	// State
@@ -220,7 +220,7 @@ void UWallNavModeComponent::OnHitCallback(UPrimitiveComponent* HitComponent, AAc
 										  UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	HitImpactNormal = Hit.ImpactNormal;
-	AcceptWallNavigationInfoIfValid(FWallNavigationInfo(HitImpactNormal));
+	AcceptWallNavInfoIfValid(FWallNavInfo(HitImpactNormal));
 }
 
 void UWallNavModeComponent::Preflight()
@@ -234,7 +234,7 @@ bool UWallNavModeComponent::CanBegin()
 {
 	// TODO
 	// AcceptWallNavigationInfoIfValid(FWallNavigationInfo(HitImpactNormal));
-	if (!WallNavigationInfo.bValid) return false;
+	if (!WallNavInfo.bValid) return false;
 	
 	TArray<ULedgeVaultNavModeComponent*> LedgeVaultNavModes;
 	GetCharacter()->GetComponents<ULedgeVaultNavModeComponent*>(LedgeVaultNavModes);
@@ -252,7 +252,7 @@ bool UWallNavModeComponent::CanBegin()
 	}
 
 	if (SpeedThreshold > 0.f
-		&& FVector::VectorPlaneProject(GetCharacter()->GetVelocity(), WallNavigationInfo.WallInfluence).Length() < SpeedThreshold)
+		&& FVector::VectorPlaneProject(GetCharacter()->GetVelocity(), WallNavInfo.WallInfluence).Length() < SpeedThreshold)
 		return false;
 	
 	FHitResult Hit(ForceInit);
@@ -261,16 +261,16 @@ bool UWallNavModeComponent::CanBegin()
 	bool IsWallHit = GetWorld()->LineTraceSingleByChannel(Hit,
 		CapsuleComponent->GetComponentLocation(),
 		CapsuleComponent->GetComponentLocation()
-			- WallNavigationInfo.ImpactNormal * CapsuleComponent->GetScaledCapsuleRadius() * 2.f,
+			- WallNavInfo.ImpactNormal * CapsuleComponent->GetScaledCapsuleRadius() * 2.f,
 		ECC_Visibility,
 		Params);
 
 	if (IsWallHit)
 	{
-		IsWallHit = AcceptWallNavigationInfoIfValid(FWallNavigationInfo(Hit.ImpactNormal));
+		IsWallHit = AcceptWallNavInfoIfValid(FWallNavInfo(Hit.ImpactNormal));
 	} else
 	{
-		WallNavigationInfo = FWallNavigationInfo();
+		WallNavInfo = FWallNavInfo();
 	}
 	
 	const bool IsInAir = GetCharacterMovement()->IsFalling();
@@ -278,9 +278,9 @@ bool UWallNavModeComponent::CanBegin()
 	bool HasEntrySpeed = false;
 	if (IsWallHit)
 	{
-		const FVector EntryVelocity = FModularNavigationUtils::Component(GetCharacterMovement()->Velocity, WallNavigationInfo.WallInfluence);
+		const FVector EntryVelocity = FModularNavigationUtils::Component(GetCharacterMovement()->Velocity, WallNavInfo.WallInfluence);
 		float EntrySpeed = EntryVelocity.Length();
-		if (FModularNavigationUtils::AngleInDegrees(GetCharacterMovement()->Velocity, WallNavigationInfo.WallInfluence) > 90)
+		if (FModularNavigationUtils::AngleInDegrees(GetCharacterMovement()->Velocity, WallNavInfo.WallInfluence) > 90)
 		{
 			EntrySpeed *= -1;
 		}
@@ -312,22 +312,22 @@ void UWallNavModeComponent::Begin()
 		GetCharacter()->JumpCurrentCountPreJump = 0;
 	}
 
-	LastUsedWallNavigationInfo = WallNavigationInfo;
+	LastUsedWallNavInfo = WallNavInfo;
 }
 
 void UWallNavModeComponent::Exec(float DeltaTime)
 {
 	// Grip wall
-	GetCharacterMovement()->AddForce(-WallNavigationInfo.ImpactNormal * WallGripAccel * GetCharacterMovement()->Mass);
+	GetCharacterMovement()->AddForce(-WallNavInfo.ImpactNormal * WallGripAccel * GetCharacterMovement()->Mass);
 
 	// Climb acceleration
 	float ClimbAccelThisTick = ClimbAccel;
 	
 	float ClimbSpeedDiff = FMath::Lerp(EndClimbSpeed, ClimbSpeed, Timer/ Duration);
 	const float CurrentWallInfSpeed = FModularNavigationUtils::Component(GetCharacterMovement()->Velocity,
-		WallNavigationInfo.WallInfluence).Length();
+		WallNavInfo.WallInfluence).Length();
 	
-	if (FModularNavigationUtils::AngleInDegrees(GetCharacterMovement()->Velocity, WallNavigationInfo.WallInfluence) < 90)
+	if (FModularNavigationUtils::AngleInDegrees(GetCharacterMovement()->Velocity, WallNavInfo.WallInfluence) < 90)
 	{
 		ClimbSpeedDiff -= CurrentWallInfSpeed;
 		ClimbAccelThisTick += MomentumClimbAccelMulti * CurrentWallInfSpeed;
@@ -352,7 +352,7 @@ void UWallNavModeComponent::Exec(float DeltaTime)
 	}
 
 	const FVector CurrentRunVelocity = FModularNavigationUtils::Component(GetCharacterMovement()->Velocity,
-		FVector::CrossProduct(WallNavigationInfo.ImpactNormal, FVector::UpVector));
+		FVector::CrossProduct(WallNavInfo.ImpactNormal, FVector::UpVector));
 	const float RunSpeedDiff = RunSpeed - CurrentRunVelocity.Length();
 	
 	float RunAccelThisTick = RunAccel * DeltaTime;
@@ -388,7 +388,7 @@ void UWallNavModeComponent::Idle(float DeltaTime)
 	if (GetCharacterMovement()->IsMovingOnGround())
 	{
 		ResetTimer();
-		LastUsedWallNavigationInfo = FWallNavigationInfo();
+		LastUsedWallNavInfo = FWallNavInfo();
 	}
 	TimeSinceNavEnd += DeltaTime;
 
@@ -397,7 +397,7 @@ void UWallNavModeComponent::Idle(float DeltaTime)
 
 bool UWallNavModeComponent::DoJump(bool bReplayingMoves)
 {
-	check(WallNavigationInfo.bValid);
+	check(WallNavInfo.bValid);
 
 	// UE_LOGFMT(LogModularNavigation, Log, "UWallJumpNavModeComponent::Begin, WallNavigationInfo.bValid = {0},"
 	// 							  " WallNavigationInfo.WallNormal = {1}, LocalRole = {2}, RemoteRole = {3}",
@@ -409,10 +409,10 @@ bool UWallNavModeComponent::DoJump(bool bReplayingMoves)
 	{
 		LateralJumpInput = GetCharacter()->GetActorForwardVector();
 	}
-	if (FModularNavigationUtils::AngleInDegrees(LateralJumpInput, WallNavigationInfo.ImpactNormal) > 90)
+	if (FModularNavigationUtils::AngleInDegrees(LateralJumpInput, WallNavInfo.ImpactNormal) > 90)
 	{
 		const FVector ForwardsTravelDirection = FModularNavigationUtils::Component(GetCharacterMovement()->Velocity,
-		FVector::CrossProduct(WallNavigationInfo.ImpactNormal, FVector::UpVector)).GetSafeNormal2D();
+		FVector::CrossProduct(WallNavInfo.ImpactNormal, FVector::UpVector)).GetSafeNormal2D();
 		if (FModularNavigationUtils::AngleInDegrees(LateralJumpInput, ForwardsTravelDirection) <= 90)
 		{
 			LateralJumpInput = ForwardsTravelDirection;
@@ -423,11 +423,11 @@ bool UWallNavModeComponent::DoJump(bool bReplayingMoves)
 		}
 	}
 	const FVector LateralJumpDirection = (WallJumpInputInfluence * LateralJumpInput
-		+ (1.f - WallJumpInputInfluence) * WallNavigationInfo.ImpactNormal).GetSafeNormal();
+		+ (1.f - WallJumpInputInfluence) * WallNavInfo.ImpactNormal).GetSafeNormal();
 	const FVector LateralJumpVelocity = LateralJumpDirection  * WallJumpLateralVelocity;
 	
 	GetCharacterMovement()->Velocity = FVector::VectorPlaneProject(GetCharacterMovement()->Velocity,
-	WallNavigationInfo.ImpactNormal);
+	WallNavInfo.ImpactNormal);
 
 	if (WallJumpMomentumOverride > 0.f)
 	{
@@ -445,7 +445,7 @@ bool UWallNavModeComponent::DoJump(bool bReplayingMoves)
 	GetCharacter()->JumpCurrentCount = 0;
 	GetCharacter()->JumpCurrentCountPreJump = 0;
 
-	if (bResetWallNavigationOnWallJump)
+	if (bResetWallNavOnWallJump)
 	{
 		TArray<UWallNavModeComponent*> WallNavModes;
 		GetCharacter()->GetComponents<UWallNavModeComponent*>(WallNavModes);
@@ -472,31 +472,31 @@ bool UWallNavModeComponent::AllowsFirstAirJump()
 FString UWallNavModeComponent::GetDebugInfo()
 {
 	return FString::Format(TEXT("{0}, WallNavigationInfo = [{1}], TimeSinceJump = {2}, Timer = {3}, LastUsedWallNavigationInfo = [{4}], TimeSinceNavEnd = {5}"),
-		{Super::GetDebugInfo(), WallNavigationInfo.GetDebugInfo(), TimeSinceJump, Timer, LastUsedWallNavigationInfo.GetDebugInfo(), TimeSinceNavEnd});
+		{Super::GetDebugInfo(), WallNavInfo.GetDebugInfo(), TimeSinceJump, Timer, LastUsedWallNavInfo.GetDebugInfo(), TimeSinceNavEnd});
 }
 
-bool UWallNavModeComponent::AcceptWallNavigationInfoIfValid(const FWallNavigationInfo& Info)
+bool UWallNavModeComponent::AcceptWallNavInfoIfValid(const FWallNavInfo& Info)
 {
 	// we've already validated this one
-	if (Info == WallNavigationInfo) return true;
+	if (Info == WallNavInfo) return true;
 	
 	const float WallAngle = FModularNavigationUtils::AngleInDegrees(Info.ImpactNormal, FVector::UpVector);
 	const bool IsWithinAngleRange = WallAngle > GetCharacterMovement()->GetWalkableFloorAngle()
 		&& WallAngle < 180 - GetCharacterMovement()->GetWalkableFloorAngle() && WallAngle > MinimumIncline;
 	const bool IsNotSimilarToLast = TimeSinceNavEnd <= WALL_NAV_END_GRACE_PERIOD
-		|| DisallowedRepeatWallAngleThreshold <= 0.f || !LastUsedWallNavigationInfo.bValid
-		|| FModularNavigationUtils::AngleInDegrees(Info.ImpactNormal, LastUsedWallNavigationInfo.ImpactNormal) >= DisallowedRepeatWallAngleThreshold;
+		|| DisallowedRepeatWallAngleThreshold <= 0.f || !LastUsedWallNavInfo.bValid
+		|| FModularNavigationUtils::AngleInDegrees(Info.ImpactNormal, LastUsedWallNavInfo.ImpactNormal) >= DisallowedRepeatWallAngleThreshold;
 	
-	if (IsWithinAngleRange && IsNotSimilarToLast) WallNavigationInfo = Info;
+	if (IsWithinAngleRange && IsNotSimilarToLast) WallNavInfo = Info;
 	return IsWithinAngleRange && IsNotSimilarToLast;
 }
 
 void UWallNavModeComponent::AddClimbImpulse(float ImpulseUpwards, bool bVelocityChange) const
 {
-	check(WallNavigationInfo.bValid);
+	check(WallNavInfo.bValid);
 	const float ImpulseClimb = ImpulseUpwards
-		/ FModularNavigationUtils::Component(WallNavigationInfo.WallInfluence, FVector::UpVector).Length();
-	GetCharacterMovement()->AddImpulse(WallNavigationInfo.WallInfluence * ImpulseClimb, bVelocityChange);
+		/ FModularNavigationUtils::Component(WallNavInfo.WallInfluence, FVector::UpVector).Length();
+	GetCharacterMovement()->AddImpulse(WallNavInfo.WallInfluence * ImpulseClimb, bVelocityChange);
 }
 
 void UWallNavModeComponent::ResetTimer()

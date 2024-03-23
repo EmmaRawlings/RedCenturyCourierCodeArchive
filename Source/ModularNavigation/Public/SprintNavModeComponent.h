@@ -17,7 +17,7 @@ public:
 
 	// main
 	/** The amount of increased speed to apply when sprinting (cm/s). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Sprint Navigation Mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Sprint Nav Mode")
 	float SpeedIncrease;
 	
 	virtual bool CanBegin() override;

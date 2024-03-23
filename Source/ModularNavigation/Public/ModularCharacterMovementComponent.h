@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "ModularCharacterMovementReplication.h"
 #include "NavModeComponent.h"
-#include "Components/TimelineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "ModularCharacterMovementComponent.generated.h"
 
@@ -68,45 +67,45 @@ public:
 	UModularCharacterMovementComponent();
 
 	/** Whether or not to allow the attached character to step onto steep slopes whilst walking. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Modular Character Movement")
 	bool bAllowWalkOntoSteepSlope;
 	/** How much momentum/velocity to carry over, when stepping onto steep slopes whilst walking. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = 0, UIMin = 0), Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = 0, UIMin = 0), Category="Modular Character Movement")
 	float WalkOntoSteepSlopeVelocityScale;
 	/** The maximum difference in incline that the character may step onto, when stepping onto steep slopes whilst walking. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = 0, UIMin = 0), Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta=(ClampMin = 0, UIMin = 0), Category="Modular Character Movement")
 	float WalkOntoSteepSlopeMaxAngleDelta;
 
-	/** Toggle execution of navigation mode components. Usually should be left on but turning off nav mode execution can
+	/** Toggle execution of nav mode components. Usually should be left on but turning off nav mode execution can
 	* help when diagnosing issues with the movement system. */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, Category="Modular Character Movement")
 	bool bExecNavModes;
 
 	/** Enable smooth crouching, instead of instantly entering/exiting crouch state. */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, Category="Modular Character Movement")
 	bool bUseSmoothCrouch;
 	/** The curve that dictate progress towards crouching and uncrouching when using smooth crouch. */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, Category="Modular Character Movement")
 	UCurveFloat* CrouchCurve;
 	/** TODO emling doc this... */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, Category="Modular Character Movement")
 	float SmoothCrouchedStateThreshold;
 	/** TODO emling doc this... */
-	UPROPERTY(EditAnywhere, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, Category="Modular Character Movement")
 	float SmoothUnCrouchedStateThreshold;
 	
 	/** The highest point, relative to the character's feet, where a ledge is checked to step.
 	*	Recommended this be set to sit around the character's knees. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Modular Character Movement")
 	float InAirStepMaxHeight;
 	/** How far to scan for a ledge to step up. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Modular Character Movement")
 	float InAirStepMaxDist;
 	/** Beyond this limit, the character will not perform a ledge step. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Modular Character Movement")
 	float InAirStepMaxVerticalSpeed;
 	/** Whether to set the vertical speed to match the ledge when performing a ledge step. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Modular Character Movement")
 	bool bInAirStepResetVerticalSpeed;
 
 	virtual void BeginPlay() override;
@@ -114,7 +113,7 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* ThisTickFunction) override;
 
-	// Navigation Modes
+	// Nav Modes
 	void MapOutNavModesOnBeginPlay();
 public:
 	virtual void SwitchNavMode(UNavModeComponent* NavModeComponent);

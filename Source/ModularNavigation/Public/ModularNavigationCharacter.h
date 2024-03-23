@@ -14,10 +14,10 @@ class MODULARNAVIGATION_API AModularNavigationCharacter : public ACharacter
 public:
 	AModularNavigationCharacter(const FObjectInitializer& ObjectInitializer);
 	/** Allows the character to jump whilst crouched. */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "EsperFPS | Game Character")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Modular Navigation Character")
 	bool bCanJumpWhilstCrouched;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="EsperFPS | Modular Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Modular Navigation Character")
 	USceneComponent* CapsuleHeadRoot;
 	
 	virtual void CheckJumpInput(float DeltaTime) override;

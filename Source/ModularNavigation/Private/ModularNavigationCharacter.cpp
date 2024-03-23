@@ -21,8 +21,6 @@ bool AModularNavigationCharacter::CanJumpInternal_Implementation() const
 		return !bIsCrouched && JumpIsAllowedInternal();
 }
 
-
-
 void AModularNavigationCharacter::CheckJumpInput(float DeltaTime)
 {
 	JumpCurrentCountPreJump = JumpCurrentCount;

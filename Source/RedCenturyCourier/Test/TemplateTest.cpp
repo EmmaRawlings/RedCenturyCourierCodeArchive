@@ -10,7 +10,7 @@
 
 #define TestSomething(Desc, A, B) if ((A) != (B)) AddError(FString::Printf(TEXT("%s - A=%d B=%d"), Desc, (A), (B)));
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTemplateTest, "EpserFPS.Somewhere.Something", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTemplateTest, "RedCenturyCourier.Somewhere.Something", EAutomationTestFlags::ApplicationContextMask | EAutomationTestFlags::SmokeFilter)
 
 
 bool FTemplateTest::RunTest(const FString& Parameters)
