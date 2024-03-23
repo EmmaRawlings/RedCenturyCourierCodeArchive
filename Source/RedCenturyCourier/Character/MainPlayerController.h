@@ -45,8 +45,24 @@ public:
 	/** Set toggle state of the input action. */
 	UFUNCTION(BlueprintCallable, Category = "Main Player Controller")
 	void SetToggle(const UInputAction* InputAction, const bool InState);
+	/** Bind event to input, with additional properties determined by MainInputUserSettings. */
+	UFUNCTION(BlueprintCallable, Category = "Main Player Controller")
+	void BindBoolWithProps(UInputAction* InputAction, FOnBoolInputAction Event);
+	/** Bind event to input, with additional properties determined by MainInputUserSettings. */
+	UFUNCTION(BlueprintCallable, Category = "Main Player Controller")
+	void BindAxis1DWithProps(UInputAction* InputAction, FOnAxis1DInputAction Event);
+	/** Bind event to input, with additional properties determined by MainInputUserSettings. */
+	UFUNCTION(BlueprintCallable, Category = "Main Player Controller")
+	void BindAxis2DWithProps(UInputAction* InputAction, FOnAxis2DInputAction Event);
+	/** Bind event to input, with additional properties determined by MainInputUserSettings. */
+	UFUNCTION(BlueprintCallable, Category = "Main Player Controller")
+	void BindAxis3DWithProps(UInputAction* InputAction, FOnAxis3DInputAction Event);
 protected:
 	TMap<FName, FToggleableInputState> ToggleStates;
+	TMap<FName, FOnBoolInputAction> BoolBinds;
+	TMap<FName, FOnAxis1DInputAction> Axis1DBinds;
+	TMap<FName, FOnAxis2DInputAction> Axis2DBinds;
+	TMap<FName, FOnAxis3DInputAction> Axis3DBinds;
 	void ToggleableInputOngoing(const FInputActionInstance& InputActionInstance);
 	void ToggleableInputCanceled(const FInputActionInstance& InputActionInstance);
 	void ToggleableInputStarted(const FInputActionInstance& InputActionInstance);
@@ -54,4 +70,5 @@ protected:
 	void ToggleableInputCompleted(const FInputActionInstance& InputActionInstance);
 	void ToggleableInputNone(const FInputActionInstance& InputActionInstance);
 	void ExecuteToggleInput(const UInputAction* InputAction, const ETriggerEvent& TriggerEvent);
+	void OnBoundInput(const FInputActionInstance& InputActionInstance);
 };

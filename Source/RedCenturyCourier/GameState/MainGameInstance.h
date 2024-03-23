@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "PlayerAxisSettings.h"
 #include "MainGameInstance.generated.h"
 
 class UUserSettingsManager;
@@ -24,5 +25,14 @@ public:
 	/** Retrieve the Game Instance. */
 	UFUNCTION(BlueprintPure, Category="Main Game Instance", meta=(WorldContext="WorldContextObject"))
 	static class UMainGameInstance* GetGameInstance(const UObject* WorldContextObject);
+	
+	UFUNCTION(BlueprintPure, Category="Main Game Instance")
+	virtual bool HasDefaultAxisProperties(const FName MappingName) const;
+	
+	UFUNCTION(BlueprintPure, Category="Main Game Instance")
+	virtual FAxisProperties GetDefaultAxisProperties(const FName MappingName) const;
+protected:
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category="Main Game Instance")
+	TMap<FName, FAxisProperties> DefaultAxisProperties;
 };
 // DOCSONLY: }

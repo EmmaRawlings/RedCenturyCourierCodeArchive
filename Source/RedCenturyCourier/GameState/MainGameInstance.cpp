@@ -22,3 +22,16 @@ UMainGameInstance* UMainGameInstance::GetGameInstance(const UObject* WorldContex
 {
 	return Cast<UMainGameInstance>(UGameplayStatics::GetGameInstance(WorldContextObject));
 }
+
+bool UMainGameInstance::HasDefaultAxisProperties(const FName MappingName) const
+{
+	return DefaultAxisProperties.Contains(MappingName);
+}
+
+FAxisProperties UMainGameInstance::GetDefaultAxisProperties(const FName MappingName) const
+{
+	if (HasDefaultAxisProperties(MappingName))
+		return DefaultAxisProperties[MappingName];
+	
+	return FAxisProperties();
+}

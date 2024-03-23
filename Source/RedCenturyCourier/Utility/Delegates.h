@@ -76,5 +76,13 @@ private:
  * INPUT
  */
 DECLARE_DYNAMIC_DELEGATE_ThreeParams(FOnToggleableInputAction, ETriggerEvent, TriggerEvent, bool, ActionValue, float, ElapsedSeconds);
+DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnBoolInputAction, ETriggerEvent, TriggerEvent, bool, ActionValue,
+	float, ElapsedSeconds, float, TriggeredSeconds, const UInputAction*, InputAction);
+DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnAxis1DInputAction, ETriggerEvent, TriggerEvent, float, ActionValue,
+	float, ElapsedSeconds, float, TriggeredSeconds, const UInputAction*, InputAction);
+DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnAxis2DInputAction, ETriggerEvent, TriggerEvent, FVector2D, ActionValue,
+	float, ElapsedSeconds, float, TriggeredSeconds, const UInputAction*, InputAction);
+DECLARE_DYNAMIC_DELEGATE_FiveParams(FOnAxis3DInputAction, ETriggerEvent, TriggerEvent, FVector, ActionValue,
+	float, ElapsedSeconds, float, TriggeredSeconds, const UInputAction*, InputAction);
 
 // DOCSONLY: }
